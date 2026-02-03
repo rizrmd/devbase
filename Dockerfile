@@ -23,14 +23,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg \
     lsb-release \
     software-properties-common \
-    build-essential \
     sudo \
     vim \
     unzip \
     git \
     tzdata \
     sqlite3 \
-    gcc \
     && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
@@ -110,9 +108,9 @@ COPY cmd/ ./cmd/
 COPY internal/ ./internal/
 COPY data/ ./data/
 
-# Download dependencies and build user manager
+# Download dependencies and build user manager (using pure Go SQLite, no CGO needed)
 RUN go mod download && \
-    go build -o /usr/local/bin/usermgr ./cmd/usermgr && \
+    CGO_ENABLED=0 go build -o /usr/local/bin/usermgr ./cmd/usermgr && \
     chmod +x /usr/local/bin/usermgr
 
 # Clean up build directory

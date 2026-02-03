@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 // SSHKey represents an SSH public key

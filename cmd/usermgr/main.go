@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 
 	"github.com/rizdev/devbase/internal/auth"
 	"github.com/rizdev/devbase/internal/config"
@@ -43,7 +43,7 @@ func main() {
 	defer db.Close()
 
 	// Initialize managers
-	authManager := auth.New(db)
+	authManager := auth.New()
 	userManager := user.New(db, cfg.BaseHomeDir)
 	sshManager := user.NewSSHManager(db, cfg.BaseHomeDir)
 
@@ -248,34 +248,6 @@ func main() {
 
 			c.JSON(http.StatusOK, gin.H{"success": true})
 		})
-
-		// Admin password routes
-		protected.GET("/admin/password", func(c *gin.Context) {
-			c.HTML(http.StatusOK, "password_form.html", gin.H{
-				"Title":         "Change Password - DevBase User Manager",
-				"Error":         c.Query("error"),
-				"IsAuthenticated": true,
-			})
-		})
-
-		protected.POST("/admin/password", func(c *gin.Context) {
-			var passwordData struct {
-				OldPassword string `form:"old_password" binding:"required"`
-				NewPassword string `form:"new_password" binding:"required"`
-			}
-
-			if err := c.ShouldBind(&passwordData); err != nil {
-				c.Redirect(http.StatusFound, "/admin/password?error=Invalid+form+data")
-				return
-			}
-
-			if err := authManager.ChangePassword("admin", passwordData.OldPassword, passwordData.NewPassword); err != nil {
-				c.Redirect(http.StatusFound, "/admin/password?error="+err.Error())
-				return
-			}
-
-			c.Redirect(http.StatusFound, "/users?success=Password+changed+successfully")
-		})
 	}
 
 	// API routes
@@ -339,7 +311,7 @@ func main() {
 
 // initDatabase initializes the SQLite database
 func initDatabase(dbPath string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dbPath)
+	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
@@ -391,16 +363,6 @@ func createTables(db *sql.DB) error {
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
 	);
-
-	CREATE TABLE IF NOT EXISTS admin_passwords (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		username TEXT DEFAULT 'admin',
-		password_hash TEXT NOT NULL,
-		changed_at DATETIME DEFAULT CURRENT_TIMESTAMP
-	);
-
-	INSERT OR IGNORE INTO admin_passwords (username, password_hash)
-	VALUES ('admin', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5Mx5WmWbQ7q7a');
 	`
 
 	_, err := db.Exec(schema)

@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 // User represents a devbase user

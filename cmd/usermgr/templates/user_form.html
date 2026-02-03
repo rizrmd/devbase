@@ -1,174 +1,248 @@
-{{ define "content" }}
-<div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md">
-    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-gray-800">
-            {{ if .IsEdit }}Edit User{{ else }}Create New User{{ end }}
-        </h1>
-        <a href="/users" class="text-gray-600 hover:text-gray-900">Back to Users</a>
-    </div>
+{{ define "user_form.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Title }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.6/dist/basecoat.cdn.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.6/dist/js/all.min.js" defer></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="nav bg-blue-600 text-white">
+        <div class="nav__start">
+            <a href="/users" class="text-xl font-bold">DevBase</a>
+            <span class="badge ml-4">User Manager</span>
+        </div>
+        <div class="nav__end">
+            <a href="/users" class="nav__link">Users</a>
+            <a href="/admin/password" class="nav__link">Change Password</a>
+            <a href="/logout" class="btn btn-ghost">Logout</a>
+        </div>
+    </nav>
 
-    <div class="p-6">
-        {{ if .User }}
-        <div class="mb-6 p-4 bg-gray-50 rounded-md">
-            <h2 class="text-lg font-semibold text-gray-700 mb-2">User Information</h2>
-            <div class="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                    <span class="font-medium">Username:</span>
-                    <span class="text-gray-600">{{ .User.Username }}</span>
-                </div>
-                <div>
-                    <span class="font-medium">Created:</span>
-                    <span class="text-gray-600">{{ .User.CreatedAt }}</span>
-                </div>
-                <div class="col-span-2">
-                    <span class="font-medium">Home Directory:</span>
-                    <span class="text-gray-600">/devbase/{{ .User.Username }}</span>
-                </div>
-                <div class="col-span-2">
-                    <span class="font-medium">SSH Access:</span>
-                    <span class="text-gray-600">ssh -p 2222 {{ .User.Username }}@localhost</span>
-                </div>
-            </div>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {{ if .Success }}
+        <div class="alert mb-4 border-l-4 border-green-500 bg-green-50">
+            {{ .Success }}
         </div>
         {{ end }}
 
-        <form action="{{ .Action }}" method="{{ .Method }}" class="space-y-4">
-            {{ if not .IsEdit }}
-            <div>
-                <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username *</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    required
-                    pattern="[a-zA-Z][a-zA-Z0-9_-]{2,31}"
-                    title="Must start with a letter, 3-32 characters, letters, numbers, underscores and hyphens only"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                <p class="mt-1 text-xs text-gray-500">3-32 characters, must start with a letter</p>
-            </div>
+        {{ if .Error }}
+        <div class="alert alert-destructive mb-4">
+            {{ .Error }}
+        </div>
+        {{ end }}
 
-            <div>
-                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password *</label>
-                <div class="flex">
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        required
-                        minlength="8"
-                        class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                    <button
-                        type="button"
-                        onclick="generatePassword()"
-                        class="bg-gray-200 px-4 py-2 rounded-r-md hover:bg-gray-300"
-                    >
-                        Generate
-                    </button>
-                </div>
-                <p class="mt-1 text-xs text-gray-500">Minimum 8 characters</p>
-            </div>
-            {{ end }}
+        <div class="card mx-auto w-full max-w-2xl">
+            <header>
+                <h2>{{ if .IsEdit }}Edit User{{ else }}Create New User{{ end }}</h2>
+                <p>{{ if .IsEdit }}Update user details and manage SSH keys{{ else }}Enter user details to create a new account{{ end }}</p>
+            </header>
 
-            <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value="{{ if .User }}{{ .User.Email }}{{ end }}"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-            </div>
-
-            <div class="pt-4">
-                <button
-                    type="submit"
-                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                    {{ if .IsEdit }}Update User{{ else }}Create User{{ end }}
-                </button>
-            </div>
-        </form>
-
-        {{ if .IsEdit }}
-        <div class="mt-8 border-t border-gray-200 pt-6">
-            <h2 class="text-lg font-semibold text-gray-700 mb-4">SSH Keys</h2>
-
-            {{ if .Keys }}
-            <div class="space-y-2 mb-4">
-                {{ range .Keys }}
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                    <div class="flex-1 min-w-0">
-                        {{ if .Name }}
-                        <p class="text-sm font-medium text-gray-900">{{ .Name }}</p>
-                        {{ end }}
-                        <p class="text-xs text-gray-500 truncate">{{ .PublicKey }}</p>
-                        <p class="text-xs text-gray-400">Added: {{ .CreatedAt }}</p>
+            <section>
+                <form action="{{ .Action }}" method="{{ .Method }}" class="form grid gap-6">
+                    {{ if not .IsEdit }}
+                    <div class="grid gap-2">
+                        <label for="username">Username *</label>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            required
+                            pattern="[a-zA-Z][a-zA-Z0-9_-]{2,31}"
+                            title="Must start with a letter, 3-32 characters, letters, numbers, underscores and hyphens only"
+                        >
+                        <p class="text-sm text-gray-500">3-32 characters, must start with a letter</p>
                     </div>
-                    <button
-                        onclick="fetch('/users/{{ $.User.Username }}/keys/{{ .ID }}', { method: 'DELETE' }).then(() => window.location.reload());"
-                        class="ml-3 text-red-600 hover:text-red-900"
-                    >
-                        Remove
-                    </button>
+
+                    <div class="grid gap-2">
+                        <label for="password">Password *</label>
+                        <div class="input__group">
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                required
+                                minlength="8"
+                                class="input input__group__item"
+                            >
+                            <button
+                                type="button"
+                                onclick="generatePassword()"
+                                class="btn btn-secondary input__group__item"
+                            >
+                                Generate
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-500">Minimum 8 characters</p>
+                    </div>
+                    {{ end }}
+
+                    <div class="grid gap-2">
+                        <label for="email">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            value="{{ if .User }}{{ .User.Email }}{{ end }}"
+                        >
+                    </div>
+                </form>
+
+                {{ if .User }}
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg border">
+                    <h3 class="font-medium mb-2">User Information</h3>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-500">Username:</span>
+                            <span class="ml-2 font-medium">{{ .User.Username }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Created:</span>
+                            <span class="ml-2 font-medium">{{ .User.CreatedAt }}</span>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="text-gray-500">Home Directory:</span>
+                            <span class="ml-2 font-mono text-xs">/devbase/{{ .User.Username }}</span>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="text-gray-500">SSH Access:</span>
+                            <span class="ml-2 font-mono text-xs">ssh -p 2222 {{ .User.Username }}@localhost</span>
+                        </div>
+                    </div>
                 </div>
                 {{ end }}
-            </div>
-            {{ else }}
-            <p class="text-sm text-gray-500 mb-4">No SSH keys configured for this user.</p>
-            {{ end }}
 
-            <form action="/users/{{ .User.Username }}/keys" method="POST" class="space-y-3">
-                <div>
-                    <label for="public_key" class="block text-sm font-medium text-gray-700 mb-1">Public Key *</label>
-                    <textarea
-                        id="public_key"
-                        name="public_key"
-                        required
-                        rows="3"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xs"
-                        placeholder="ssh-rsa AAAA... user@host"
-                    ></textarea>
+                {{ if .IsEdit }}
+                <div class="mt-8 border-t pt-6">
+                    <h3 class="font-medium mb-4">SSH Keys</h3>
+
+                    {{ if .Keys }}
+                    <div class="space-y-2 mb-4">
+                        {{ range .Keys }}
+                        <div class="card card--compact">
+                            <div class="flex items-center justify-between w-full gap-4">
+                                <div class="flex-1 min-w-0">
+                                    {{ if .Name }}
+                                    <p class="font-medium">{{ .Name }}</p>
+                                    {{ end }}
+                                    <p class="text-sm text-gray-500 truncate font-mono">{{ .PublicKey }}</p>
+                                    <p class="text-xs text-gray-400">Added: {{ .CreatedAt }}</p>
+                                </div>
+                                <button
+                                    onclick="fetch('/users/{{ $.User.Username }}/keys/{{ .ID }}', { method: 'DELETE' }).then(() => window.location.reload());"
+                                    class="btn btn-destructive btn-sm"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                        {{ end }}
+                    </div>
+                    {{ else }}
+                    <p class="text-sm text-gray-500 mb-4">No SSH keys configured for this user.</p>
+                    {{ end }}
+
+                    <form action="/users/{{ .User.Username }}/keys" method="POST" class="form grid gap-4">
+                        <div class="grid gap-2">
+                            <label for="public_key">Public Key *</label>
+                            <textarea
+                                id="public_key"
+                                name="public_key"
+                                required
+                                rows="3"
+                                class="textarea font-mono text-xs"
+                                placeholder="ssh-rsa AAAA... user@host"
+                            ></textarea>
+                        </div>
+
+                        <div class="grid gap-2">
+                            <label for="name">Name (optional)</label>
+                            <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                placeholder="e.g., Laptop, Desktop"
+                            >
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            Add SSH Key
+                        </button>
+                    </form>
                 </div>
+                {{ end }}
+            </section>
 
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name (optional)</label>
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="e.g., Laptop, Desktop"
-                    >
-                </div>
-
-                <button
-                    type="submit"
-                    class="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                    Add SSH Key
+            <footer class="flex flex-col gap-2">
+                <button type="submit" form="user-form" class="btn btn-primary w-full">
+                    {{ if .IsEdit }}Update User{{ else }}Create User{{ end }}
                 </button>
-            </form>
+                <a href="/users" class="btn btn-ghost w-full">Back to Users</a>
+            </footer>
         </div>
+    </main>
+
+    <form id="user-form" action="{{ .Action }}" method="{{ .Method }}" style="display: none;">
+        <input type="hidden" name="email" value="{{ if .User }}{{ .User.Email }}{{ end }}">
+        {{ if not .IsEdit }}
+        <input type="hidden" name="username" value="">
+        <input type="hidden" name="password" value="">
         {{ end }}
-    </div>
-</div>
+    </form>
 
-<script>
-function generatePassword() {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-    let password = '';
-    const array = new Uint32Array(16);
-    crypto.getRandomValues(array);
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('Copied to clipboard!');
+            }, function(err) {
+                alert('Failed to copy: ' + err);
+            });
+        }
 
-    for (let i = 0; i < 16; i++) {
-        password += chars[array[i] % chars.length];
-    }
+        function confirmDelete(username) {
+            return confirm('Are you sure you want to delete user "' + username + '"? This action cannot be undone.');
+        }
 
-    document.getElementById('password').value = password;
-    document.getElementById('password').type = 'text';
-}
-</script>
+        function generatePassword() {
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+            let password = '';
+            const array = new Uint32Array(16);
+            crypto.getRandomValues(array);
+
+            for (let i = 0; i < 16; i++) {
+                password += chars[array[i] % chars.length];
+            }
+
+            const passwordInput = document.getElementById('password');
+            passwordInput.value = password;
+            passwordInput.type = 'text';
+        }
+
+        // Handle form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainForm = document.querySelector('section form');
+            const emailInput = document.querySelector('input[name="email"]');
+
+            mainForm.addEventListener('submit', function(e) {
+                // Update hidden form for footer button
+                const hiddenForm = document.getElementById('user-form');
+                if (hiddenForm && emailInput) {
+                    hiddenForm.querySelector('input[name="email"]').value = emailInput.value;
+                    const usernameInput = document.querySelector('input[name="username"]');
+                    const passwordInput = document.querySelector('input[name="password"]');
+                    if (usernameInput) {
+                        hiddenForm.querySelector('input[name="username"]').value = usernameInput.value;
+                    }
+                    if (passwordInput) {
+                        hiddenForm.querySelector('input[name="password"]').value = passwordInput.value;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
 {{ end }}

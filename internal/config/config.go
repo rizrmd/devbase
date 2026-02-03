@@ -20,7 +20,7 @@ type Config struct {
 func Load() *Config {
 	return &Config{
 		AdminPassword:   getEnv("ADMIN_PASSWORD", "admin123"),
-		DBPath:          getEnv("DB_PATH", "/var/lib/devbase/users.db"),
+		DBPath:          getEnv("DB_PATH", "/devbase/.internal/users.db"),
 		ListenAddr:      getEnv("LISTEN_ADDR", ":8080"),
 		BaseHomeDir:     getEnv("BASE_HOME_DIR", "/devbase"),
 		SSHPort:         getEnvInt("SSH_PORT", 2222),

@@ -37,7 +37,7 @@ Once running:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ADMIN_PASSWORD` | `admin123` | Admin password for web UI |
-| `DB_PATH` | `/var/lib/devbase/users.db` | SQLite database path |
+| `DB_PATH` | `/devbase/.internal/users.db` | SQLite database path |
 | `LISTEN_ADDR` | `:8080` | Web UI listen address |
 | `BASE_HOME_DIR` | `/devbase` | User home directory base |
 | `SSH_PORT` | `2222` | SSH port (for reference) |

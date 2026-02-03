@@ -104,9 +104,9 @@ RUN echo 'export PATH=/usr/local/go/bin:$GOPATH/bin:$PATH' > /etc/profile.d/dev-
 RUN mkdir -p /devbase && \
     chmod 755 /devbase
 
-# Create data directory for user manager database
-RUN mkdir -p /var/lib/devbase && \
-    chmod 755 /var/lib/devbase
+# Create internal data directory for user manager database (persistent volume)
+RUN mkdir -p /devbase/.internal && \
+    chmod 700 /devbase/.internal
 
 # Set working directory for build
 WORKDIR /build

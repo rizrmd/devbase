@@ -49,7 +49,7 @@ Open your browser and navigate to:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `ADMIN_PASSWORD` | Default admin password | `admin123` |
-| `DB_PATH` | Path to SQLite database | `/var/lib/devbase/users.db` |
+| `DB_PATH` | Path to SQLite database | `/devbase/.internal/users.db` |
 | `LISTEN_ADDR` | Server address | `:8080` |
 | `BASE_HOME_DIR` | Base directory for user homes | `/devbase` |
 | `SSH_PORT` | SSH port | `2222` |

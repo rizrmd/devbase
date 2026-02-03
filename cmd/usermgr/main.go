@@ -188,6 +188,25 @@ func main() {
 			}
 			c.JSON(http.StatusOK, gin.H{"success": true})
 		})
+
+		protected.POST("/users/:username/password", func(c *gin.Context) {
+			username := c.Param("username")
+			var passwordData struct {
+				Password string `form:"password" binding:"required"`
+			}
+
+			if err := c.ShouldBind(&passwordData); err != nil {
+				c.Redirect(http.StatusFound, fmt.Sprintf("/users/%s?error=Password+is+required", username))
+				return
+			}
+
+			if err := userManager.ChangePassword(username, passwordData.Password); err != nil {
+				c.Redirect(http.StatusFound, fmt.Sprintf("/users/%s?error=Failed+to+change+password", username))
+				return
+			}
+
+			c.Redirect(http.StatusFound, fmt.Sprintf("/users/%s?success=Password+changed", username))
+		})
 	}
 
 	// API routes

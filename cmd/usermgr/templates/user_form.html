@@ -98,6 +98,36 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h3 class="font-medium mb-4">Change Password</h3>
+                    <form action="/users/{{ .User.Username }}/password" method="POST" class="form grid gap-4">
+                        <div class="grid gap-2">
+                            <label for="new_password">New Password *</label>
+                            <div class="input__group">
+                                <input
+                                    type="password"
+                                    id="new_password"
+                                    name="password"
+                                    required
+                                    minlength="8"
+                                    class="input input__group__item"
+                                >
+                                <button
+                                    type="button"
+                                    onclick="generateNewPassword()"
+                                    class="btn btn-secondary input__group__item"
+                                >
+                                    Generate
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-500">Minimum 8 characters</p>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            Change Password
+                        </button>
+                    </form>
+                </div>
                 {{ end }}
             </section>
 
@@ -128,8 +158,27 @@
             }
 
             const passwordInput = document.getElementById('password');
-            passwordInput.value = password;
-            passwordInput.type = 'text';
+            if (passwordInput) {
+                passwordInput.value = password;
+                passwordInput.type = 'text';
+            }
+        }
+
+        function generateNewPassword() {
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+            let password = '';
+            const array = new Uint32Array(16);
+            crypto.getRandomValues(array);
+
+            for (let i = 0; i < 16; i++) {
+                password += chars[array[i] % chars.length];
+            }
+
+            const passwordInput = document.getElementById('new_password');
+            if (passwordInput) {
+                passwordInput.value = password;
+                passwordInput.type = 'text';
+            }
         }
     </script>
 </body>

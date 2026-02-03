@@ -152,6 +152,23 @@ func (m *Manager) UpdateUser(username, _ string) error {
 	return nil
 }
 
+// ChangePassword changes a user's password
+func (m *Manager) ChangePassword(username, newPassword string) error {
+	// Check if user exists
+	if !m.UserExists(username) {
+		return fmt.Errorf("user not found")
+	}
+
+	// Change password using chpasswd
+	cmd := exec.Command("sudo", "chpasswd")
+	cmd.Stdin = strings.NewReader(fmt.Sprintf("%s:%s", username, newPassword))
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("chpasswd failed: %s: %w", string(output), err)
+	}
+
+	return nil
+}
+
 // DeleteUser deletes a user
 func (m *Manager) DeleteUser(username string) error {
 	// Check if user exists

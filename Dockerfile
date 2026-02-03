@@ -57,6 +57,9 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     apt-get install -y --no-install-recommends gh && \
     rm -rf /var/lib/apt/lists/*
 
+# Install Claude CLI
+RUN curl -fsSL https://claude.ai/install.sh | bash
+
 # Create 'dev' user, configure SSH, and set up environment in one layer
 RUN useradd -m -s /bin/bash dev && \
     usermod -aG sudo dev && \
@@ -72,6 +75,16 @@ RUN useradd -m -s /bin/bash dev && \
     echo 'export PATH=$HOME/.bun/bin:$PATH' >> /home/dev/.bashrc && \
     echo 'export GOPATH=$HOME/go' >> /home/dev/.bashrc && \
     echo 'export PATH=$GOPATH/bin:$PATH' >> /home/dev/.bashrc
+
+# Configure Claude CLI for dev user
+RUN mkdir -p /home/dev/.claude && \
+    chown -R dev:dev /home/dev/.claude && \
+    echo '{"alwaysThinkingEnabled":true,"env":{"ANTHROPIC_AUTH_TOKEN":"b613ee297dd6487b9666bd26b1de5b90.haYfk3kmbe0v5Ptk","ANTHROPIC_BASE_URL":"https://api.z.ai/api/anthropic","API_TIMEOUT_MS":"3000000"},"includeCoAuthoredBy":false}' > /home/dev/.claude/settings.json && \
+    chown dev:dev /home/dev/.claude/settings.json && \
+    chmod 600 /home/dev/.claude/settings.json
+
+# Ensure home directory ownership is correct
+RUN chown -R dev:dev /home/dev
 
 # Expose SSH port (container port, mapped to different host port by Coolify)
 EXPOSE 2222

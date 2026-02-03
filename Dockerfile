@@ -60,6 +60,7 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
 # Create 'dev' user, configure SSH, and set up environment in one layer
 RUN useradd -m -s /bin/bash dev && \
     usermod -aG sudo dev && \
+    echo 'dev:devbase123!@#' | chpasswd && \
     echo "dev ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
     mkdir -p /home/dev/.ssh && \
     chown -R dev:dev /home/dev/.ssh && \

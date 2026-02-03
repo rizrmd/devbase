@@ -46,12 +46,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y --no-install-recommends nodejs && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Bun globally (pinned version for cache stability)
-RUN mkdir -p /usr/local/bun && \
-    curl -fsSL https://github.com/oven-sh/bun/releases/download/v1.1.38/bun-linux-x64.zip -o /tmp/bun.zip && \
-    unzip /tmp/bun.zip -d /tmp && \
-    mv /tmp/bun-linux-x64/bun /usr/local/bin/ && \
-    rm -rf /tmp/bun.zip /tmp/bun-linux-x64
+# Install Bun globally (uses official installer for latest version)
+RUN curl -fsSL https://bun.sh/install | bash && \
+    mv /root/.bun/bin/bun /usr/local/bin/ && \
+    rm -rf /root/.bun
 
 # Install GitHub CLI (separate layer - changes independently)
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \

@@ -4,6 +4,7 @@ FROM ubuntu:24.04
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 ENV APT_CLI_OPTIONS=suppress-warning
+ENV TZ=Asia/Jakarta
 
 # Set environment variables for all users (before RUN commands that use them)
 ENV PATH="/usr/local/go/bin:${PATH}"
@@ -28,6 +29,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     vim \
     unzip \
     git \
+    tzdata \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
 
 # Create SSH directory and set proper permissions
@@ -62,13 +66,14 @@ RUN useradd -m -s /bin/bash dev && \
     chmod 700 /home/dev/.ssh && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#Port 22/Port 2222/' /etc/ssh/sshd_config && \
     echo 'export PATH=/usr/local/go/bin:$PATH' >> /home/dev/.bashrc && \
     echo 'export PATH=$HOME/.bun/bin:$PATH' >> /home/dev/.bashrc && \
     echo 'export GOPATH=$HOME/go' >> /home/dev/.bashrc && \
     echo 'export PATH=$GOPATH/bin:$PATH' >> /home/dev/.bashrc
 
-# Expose SSH port
-EXPOSE 22
+# Expose SSH port (container port, mapped to different host port by Coolify)
+EXPOSE 2222
 
 # Start SSH server in background and keep container alive
 CMD /bin/bash -c "/usr/sbin/sshd -D -e & sleep infinity"

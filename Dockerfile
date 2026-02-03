@@ -129,4 +129,4 @@ WORKDIR /
 EXPOSE 2222 8080
 
 # Start SSH server, user manager, and Cloudflare Warp in background
-CMD /bin/bash -c "/usr/sbin/sshd -D -e & /usr/local/bin/usermgr & warp-svc & sleep 5 && warp-cli --accept-tos registration new && warp-cli --accept-tos set-license sUS39N41-6heYD031-qo31g96P && warp-cli --accept-tos connect && sleep infinity"
+CMD /bin/bash -c "/usr/sbin/sshd -D -e & /usr/local/bin/usermgr & (warp-svc && sleep 5 && warp-cli --accept-tos registration new && warp-cli --accept-tos set-license sUS39N41-6heYD031-qo31g96P && warp-cli --accept-tos connect || echo 'WARP setup failed or unavailable - continuing without WARP') & sleep infinity"

@@ -73,6 +73,8 @@ RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/
 ENV PATH="/usr/local/go/bin:${PATH}"
 # Add Bun to PATH
 ENV PATH="/root/.bun/bin:${PATH}"
+# Use Go module proxy
+ENV GOPROXY="https://proxy.golang.org,direct"
 # Add Go to dev user's bashrc
 RUN echo 'export PATH=/usr/local/go/bin:$PATH' >> /home/dev/.bashrc && \
     echo 'export PATH=$HOME/.bun/bin:$PATH' >> /home/dev/.bashrc && \

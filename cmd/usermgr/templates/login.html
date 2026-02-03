@@ -10,13 +10,15 @@
     <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.6/dist/js/all.min.js" defer></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    {{ if .Error }}
-    <div class="alert alert-destructive mb-4 w-full max-w-md">
-        {{ .Error }}
-    </div>
-    {{ end }}
-
     <div class="card w-full max-w-md">
+        {{ if .Error }}
+        <div class="alert-destructive mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" /></svg>
+            <h2>Login Error</h2>
+            <section>{{ .Error }}</section>
+        </div>
+        {{ end }}
+
         <header>
             <h2>DevBase User Manager</h2>
             <p>Enter your details below to login to your account</p>

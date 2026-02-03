@@ -26,14 +26,18 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {{ if .Success }}
-        <div class="alert mb-4 border-l-4 border-green-500 bg-green-50">
-            {{ .Success }}
+        <div class="alert mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+            <h2>Success</h2>
+            <section>{{ .Success }}</section>
         </div>
         {{ end }}
 
         {{ if .Error }}
-        <div class="alert alert-destructive mb-4">
-            {{ .Error }}
+        <div class="alert-destructive mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" /></svg>
+            <h2>Error</h2>
+            <section>{{ .Error }}</section>
         </div>
         {{ end }}
 

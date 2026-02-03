@@ -5,21 +5,19 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
-	"os"
+	"os/exec"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
 	adminSessionKey = "admin_session"
 	sessionDuration = 1 * time.Hour
-	shadowFile      = "/etc/shadow"
 )
 
-// AdminAuth handles admin authentication using shadow file
+// AdminAuth handles admin authentication using system
 type AdminAuth struct{}
 
 // New creates a new AdminAuth instance
@@ -39,43 +37,29 @@ type User struct {
 	Username string
 }
 
-// Login authenticates an admin user using /etc/shadow
+// Login authenticates an admin user by attempting to run a command as that user
 func (a *AdminAuth) Login(username, password string) (*Session, error) {
-	// Read shadow file
-	data, err := os.ReadFile(shadowFile)
+	// Validate username
+	if username == "" {
+		return nil, fmt.Errorf("username is required")
+	}
+	if password == "" {
+		return nil, fmt.Errorf("password is required")
+	}
+
+	// Try to authenticate by running a simple command as the user using su
+	// This validates the password against the system (PAM/shadow)
+	cmd := exec.Command("su", "-c", "true", username)
+	cmd.Stdin = strings.NewReader(password)
+
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read shadow file: %w", err)
-	}
-
-	// Find user's hash
-	lines := strings.Split(string(data), "\n")
-	var storedHash string
-	for _, line := range lines {
-		if strings.HasPrefix(line, username+":") {
-			parts := strings.Split(line, ":")
-			if len(parts) >= 2 {
-				storedHash = parts[1]
-				break
-			}
-		}
-	}
-
-	if storedHash == "" {
-		return nil, fmt.Errorf("user not found")
-	}
-
-	// Check if account is locked
-	if storedHash == "*" || storedHash == "!" || strings.HasPrefix(storedHash, "!") {
-		return nil, fmt.Errorf("account is locked")
-	}
-
-	// Verify password - only support bcrypt for now
-	if !strings.HasPrefix(storedHash, "$2") {
-		return nil, fmt.Errorf("unsupported hash format. Please change password to bcrypt: sudo passwd dev")
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(password)); err != nil {
 		return nil, fmt.Errorf("authentication failed")
+	}
+
+	// Verify command succeeded (exit code 0)
+	if !cmd.ProcessState.Success() {
+		return nil, fmt.Errorf("authentication failed: %s", string(output))
 	}
 
 	// Create session token

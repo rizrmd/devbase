@@ -1,9 +1,10 @@
-FROM ubuntu:latest
+# Use specific Ubuntu version for better caching (instead of :latest)
+FROM ubuntu:24.04
 
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install basic dependencies and SSH server
+# Install basic dependencies and SSH server in a single layer
 RUN apt-get update && apt-get install -y \
     openssh-server \
     curl \

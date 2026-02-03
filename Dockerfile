@@ -4,6 +4,10 @@ FROM ubuntu:24.04
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Use Indonesian mirror for faster package downloads
+RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|http://kartolo.sby.datautama.net.id/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources && \
+    sed -i 's|http://security.ubuntu.com/ubuntu/|http://kartolo.sby.datautama.net.id/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources
+
 # Install basic dependencies and SSH server in a single layer
 RUN apt-get update && apt-get install -y \
     openssh-server \
@@ -16,6 +20,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     sudo \
     vim \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
 # Create SSH directory and set proper permissions

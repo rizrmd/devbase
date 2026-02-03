@@ -17,7 +17,6 @@
         </div>
         <div class="nav__end">
             <a href="/users" class="nav__link">Users</a>
-            <a href="/admin/password" class="nav__link">Change Password</a>
             <a href="/logout" class="btn btn-ghost">Logout</a>
         </div>
     </nav>
@@ -50,9 +49,8 @@
                         <thead>
                             <tr>
                                 <th>Username</th>
-                                <th>Email</th>
+                                <th>Home Directory</th>
                                 <th>Created</th>
-                                <th>Status</th>
                                 <th class="text-right">Actions</th>
                             </tr>
                         </thead>
@@ -60,15 +58,8 @@
                             {{ range .Users }}
                             <tr>
                                 <td class="table__cell--strong">{{ .Username }}</td>
-                                <td>{{ .Email }}</td>
+                                <td class="font-mono text-xs">{{ .HomeDir }}</td>
                                 <td>{{ .CreatedAt }}</td>
-                                <td>
-                                    {{ if .IsActive }}
-                                    <span class="badge badge-primary">Active</span>
-                                    {{ else }}
-                                    <span class="badge badge-destructive">Inactive</span>
-                                    {{ end }}
-                                </td>
                                 <td class="text-right">
                                     <a href="/users/{{ .Username }}" class="btn btn-ghost btn-sm">View</a>
                                     <button
@@ -91,14 +82,6 @@
     </main>
 
     <script>
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                alert('Copied to clipboard!');
-            }, function(err) {
-                alert('Failed to copy: ' + err);
-            });
-        }
-
         function confirmDelete(username) {
             return confirm('Are you sure you want to delete user "' + username + '"? This action cannot be undone.');
         }

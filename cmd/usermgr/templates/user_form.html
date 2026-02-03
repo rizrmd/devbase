@@ -17,7 +17,6 @@
         </div>
         <div class="nav__end">
             <a href="/users" class="nav__link">Users</a>
-            <a href="/admin/password" class="nav__link">Change Password</a>
             <a href="/logout" class="btn btn-ghost">Logout</a>
         </div>
     </nav>
@@ -37,13 +36,13 @@
 
         <div class="card mx-auto w-full max-w-2xl">
             <header>
-                <h2>{{ if .IsEdit }}Edit User{{ else }}Create New User{{ end }}</h2>
-                <p>{{ if .IsEdit }}Update user details and manage SSH keys{{ else }}Enter user details to create a new account{{ end }}</p>
+                <h2>{{ if .IsEdit }}View User{{ else }}Create New User{{ end }}</h2>
+                <p>{{ if .IsEdit }}View user details{{ else }}Enter user details to create a new account{{ end }}</p>
             </header>
 
             <section>
-                <form action="{{ .Action }}" method="{{ .Method }}" class="form grid gap-6">
-                    {{ if not .IsEdit }}
+                {{ if not .IsEdit }}
+                <form action="{{ .Action }}" method="{{ .Method }}" class="form grid gap-6" id="create-user-form">
                     <div class="grid gap-2">
                         <label for="username">Username *</label>
                         <input
@@ -78,23 +77,13 @@
                         </div>
                         <p class="text-sm text-gray-500">Minimum 8 characters</p>
                     </div>
-                    {{ end }}
-
-                    <div class="grid gap-2">
-                        <label for="email">Email</label>
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            value="{{ if .User }}{{ .User.Email }}{{ end }}"
-                        >
-                    </div>
                 </form>
+                {{ end }}
 
                 {{ if .User }}
-                <div class="mt-6 p-4 bg-gray-50 rounded-lg border">
+                <div class="p-4 bg-gray-50 rounded-lg border">
                     <h3 class="font-medium mb-2">User Information</h3>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="grid grid-cols-1 gap-4 text-sm">
                         <div>
                             <span class="text-gray-500">Username:</span>
                             <span class="ml-2 font-medium">{{ .User.Username }}</span>
@@ -103,105 +92,27 @@
                             <span class="text-gray-500">Created:</span>
                             <span class="ml-2 font-medium">{{ .User.CreatedAt }}</span>
                         </div>
-                        <div class="col-span-2">
+                        <div>
                             <span class="text-gray-500">Home Directory:</span>
-                            <span class="ml-2 font-mono text-xs">/devbase/{{ .User.Username }}</span>
-                        </div>
-                        <div class="col-span-2">
-                            <span class="text-gray-500">SSH Access:</span>
-                            <span class="ml-2 font-mono text-xs">ssh -p 2222 {{ .User.Username }}@localhost</span>
+                            <span class="ml-2 font-mono text-xs">{{ .User.HomeDir }}</span>
                         </div>
                     </div>
-                </div>
-                {{ end }}
-
-                {{ if .IsEdit }}
-                <div class="mt-8 border-t pt-6">
-                    <h3 class="font-medium mb-4">SSH Keys</h3>
-
-                    {{ if .Keys }}
-                    <div class="space-y-2 mb-4">
-                        {{ range .Keys }}
-                        <div class="card card--compact">
-                            <div class="flex items-center justify-between w-full gap-4">
-                                <div class="flex-1 min-w-0">
-                                    {{ if .Name }}
-                                    <p class="font-medium">{{ .Name }}</p>
-                                    {{ end }}
-                                    <p class="text-sm text-gray-500 truncate font-mono">{{ .PublicKey }}</p>
-                                    <p class="text-xs text-gray-400">Added: {{ .CreatedAt }}</p>
-                                </div>
-                                <button
-                                    onclick="fetch('/users/{{ $.User.Username }}/keys/{{ .ID }}', { method: 'DELETE' }).then(() => window.location.reload());"
-                                    class="btn btn-destructive btn-sm"
-                                >
-                                    Remove
-                                </button>
-                            </div>
-                        </div>
-                        {{ end }}
-                    </div>
-                    {{ else }}
-                    <p class="text-sm text-gray-500 mb-4">No SSH keys configured for this user.</p>
-                    {{ end }}
-
-                    <form action="/users/{{ .User.Username }}/keys" method="POST" class="form grid gap-4">
-                        <div class="grid gap-2">
-                            <label for="public_key">Public Key *</label>
-                            <textarea
-                                id="public_key"
-                                name="public_key"
-                                required
-                                rows="3"
-                                class="textarea font-mono text-xs"
-                                placeholder="ssh-rsa AAAA... user@host"
-                            ></textarea>
-                        </div>
-
-                        <div class="grid gap-2">
-                            <label for="name">Name (optional)</label>
-                            <input
-                                type="text"
-                                id="name"
-                                name="name"
-                                placeholder="e.g., Laptop, Desktop"
-                            >
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">
-                            Add SSH Key
-                        </button>
-                    </form>
                 </div>
                 {{ end }}
             </section>
 
             <footer class="flex flex-col gap-2">
-                <button type="submit" form="user-form" class="btn btn-primary w-full">
-                    {{ if .IsEdit }}Update User{{ else }}Create User{{ end }}
+                {{ if not .IsEdit }}
+                <button type="submit" form="create-user-form" class="btn btn-primary w-full">
+                    Create User
                 </button>
+                {{ end }}
                 <a href="/users" class="btn btn-ghost w-full">Back to Users</a>
             </footer>
         </div>
     </main>
 
-    <form id="user-form" action="{{ .Action }}" method="{{ .Method }}" style="display: none;">
-        <input type="hidden" name="email" value="{{ if .User }}{{ .User.Email }}{{ end }}">
-        {{ if not .IsEdit }}
-        <input type="hidden" name="username" value="">
-        <input type="hidden" name="password" value="">
-        {{ end }}
-    </form>
-
     <script>
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                alert('Copied to clipboard!');
-            }, function(err) {
-                alert('Failed to copy: ' + err);
-            });
-        }
-
         function confirmDelete(username) {
             return confirm('Are you sure you want to delete user "' + username + '"? This action cannot be undone.');
         }
@@ -220,28 +131,6 @@
             passwordInput.value = password;
             passwordInput.type = 'text';
         }
-
-        // Handle form submission
-        document.addEventListener('DOMContentLoaded', function() {
-            const mainForm = document.querySelector('section form');
-            const emailInput = document.querySelector('input[name="email"]');
-
-            mainForm.addEventListener('submit', function(e) {
-                // Update hidden form for footer button
-                const hiddenForm = document.getElementById('user-form');
-                if (hiddenForm && emailInput) {
-                    hiddenForm.querySelector('input[name="email"]').value = emailInput.value;
-                    const usernameInput = document.querySelector('input[name="username"]');
-                    const passwordInput = document.querySelector('input[name="password"]');
-                    if (usernameInput) {
-                        hiddenForm.querySelector('input[name="username"]').value = usernameInput.value;
-                    }
-                    if (passwordInput) {
-                        hiddenForm.querySelector('input[name="password"]').value = passwordInput.value;
-                    }
-                }
-            });
-        });
     </script>
 </body>
 </html>

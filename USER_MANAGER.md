@@ -70,9 +70,8 @@ docker stop devbase-test && docker rm devbase-test
 
 ## Container Startup
 
-The container starts three services:
+The container starts two services:
 1. **SSH Server** on port 2222 (via `/usr/sbin/sshd`)
 2. **User Manager** on port 8080 (via `/usr/local/bin/usermgr`)
-3. **Cloudflare Warp** (optional, via `warp-svc`)
 
 All processes run in background with the container kept alive by `sleep infinity`.

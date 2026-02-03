@@ -155,7 +155,6 @@ The user manager is integrated into the main DevBase Docker container. See the m
 When the container starts:
 1. SSH server runs on port 2222
 2. User manager web UI runs on port 8080
-3. Cloudflare Warp (optional) runs in background
 
 ## Troubleshooting
 

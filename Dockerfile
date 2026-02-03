@@ -63,13 +63,6 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
 # Install Claude CLI
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
-# Install Cloudflare Warp
-RUN curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ jammy main" | tee /etc/apt/sources.list.d/cloudflare-client.list && \
-    apt-get update && \
-    apt-get install -y cloudflare-warp && \
-    rm -rf /var/lib/apt/lists/*
-
 # Create 'dev' user, configure SSH, and set up environment in one layer
 RUN useradd -m -s /bin/bash dev && \
     usermod -aG sudo dev && \
@@ -128,5 +121,5 @@ WORKDIR /
 # Expose ports (SSH and web UI)
 EXPOSE 2222 8080
 
-# Start SSH server, user manager, and Cloudflare Warp in background
-CMD /bin/bash -c "/usr/sbin/sshd -D -e & /usr/local/bin/usermgr & (warp-svc && sleep 5 && warp-cli --accept-tos registration new && warp-cli --accept-tos set-license sUS39N41-6heYD031-qo31g96P && warp-cli --accept-tos connect || echo 'WARP setup failed or unavailable - continuing without WARP') & sleep infinity"
+# Start SSH server and user manager in background
+CMD /bin/bash -c "/usr/sbin/sshd -D -e & /usr/local/bin/usermgr & sleep infinity"

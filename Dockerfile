@@ -5,12 +5,17 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV APT_CLI_OPTIONS=suppress-warning
 
+# Set environment variables for all users (before RUN commands that use them)
+ENV PATH="/usr/local/go/bin:${PATH}"
+ENV PATH="/root/.bun/bin:${PATH}"
+ENV GOPROXY="https://proxy.golang.org,direct"
+
 # Use Indonesian mirror for faster package downloads
 RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|http://kartolo.sby.datautama.net.id/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources && \
     sed -i 's|http://security.ubuntu.com/ubuntu/|http://kartolo.sby.datautama.net.id/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources
 
 # Install basic dependencies, SSH server, and Git in a single layer
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-server \
     curl \
     wget \
@@ -28,24 +33,24 @@ RUN apt-get update && apt-get install -y \
 # Create SSH directory and set proper permissions
 RUN mkdir -p /var/run/sshd
 
-# Parallel downloads: Go, Node.js setup, Bun
-RUN (wget https://go.dev/dl/go1.23.5.linux-amd64.tar.gz -O /tmp/go.tar.gz &) && \
-    (curl -fsSL https://deb.nodesource.com/setup_lts.x -o /tmp/nodesource.sh &) && \
-    (curl -fsSL https://bun.sh/install -o /tmp/bun.sh &) && \
-    wait && \
-    # Install all in sequence
-    bash /tmp/nodesource.sh && \
-    apt-get install -y nodejs && \
-    bash /tmp/bun.sh && \
+# Install Go (pinned version - most stable, rarely changes)
+RUN wget -q https://go.dev/dl/go1.23.5.linux-amd64.tar.gz -O /tmp/go.tar.gz && \
     tar -C /usr/local -xzf /tmp/go.tar.gz && \
-    rm -f /tmp/go.tar.gz /tmp/nodesource.sh /tmp/bun.sh && \
+    rm /tmp/go.tar.gz
+
+# Install Node.js (pinned LTS version for cache stability)
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
     rm -rf /var/lib/apt/lists/*
 
-# Install GitHub CLI
+# Install Bun (pinned version for cache stability)
+RUN curl -fsSL https://bun.sh/install | bash -s "bun-v1.1.38"
+
+# Install GitHub CLI (separate layer - changes independently)
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list && \
     apt-get update && \
-    apt-get install -y gh && \
+    apt-get install -y --no-install-recommends gh && \
     rm -rf /var/lib/apt/lists/*
 
 # Create 'dev' user, configure SSH, and set up environment in one layer
@@ -62,16 +67,8 @@ RUN useradd -m -s /bin/bash dev && \
     echo 'export GOPATH=$HOME/go' >> /home/dev/.bashrc && \
     echo 'export PATH=$GOPATH/bin:$PATH' >> /home/dev/.bashrc
 
-# Set environment variables for all users
-# Add Go to PATH
-ENV PATH="/usr/local/go/bin:${PATH}"
-# Add Bun to PATH
-ENV PATH="/root/.bun/bin:${PATH}"
-# Use Go module proxy
-ENV GOPROXY="https://proxy.golang.org,direct"
-
-# Expose both SSH and web port for Coolify health check
-EXPOSE 22 3000
+# Expose SSH port
+EXPOSE 22
 
 # Start SSH server in background and keep container alive
 CMD /bin/bash -c "/usr/sbin/sshd -D -e & sleep infinity"

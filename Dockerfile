@@ -73,8 +73,8 @@ RUN echo 'export PATH=/usr/local/go/bin:$PATH' >> /home/dev/.bashrc && \
     echo 'export GOPATH=$HOME/go' >> /home/dev/.bashrc && \
     echo 'export PATH=$GOPATH/bin:$PATH' >> /home/dev/.bashrc
 
-# Expose SSH port
-EXPOSE 22
+# Expose both SSH and web port for Coolify health check
+EXPOSE 22 3000
 
-# Start SSH server
-CMD ["/usr/sbin/sshd", "-D", "-e"]
+# Start SSH server in background and keep container alive
+CMD /bin/bash -c "/usr/sbin/sshd -D -e & sleep infinity"

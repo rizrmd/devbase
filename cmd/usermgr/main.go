@@ -70,8 +70,9 @@ func main() {
 
 	router.GET("/login", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", gin.H{
-			"Title": "Login - DevBase User Manager",
-			"Error": c.Query("error"),
+			"Title":         "Login - DevBase User Manager",
+			"Error":         c.Query("error"),
+			"IsAuthenticated": false,
 		})
 	})
 
@@ -108,24 +109,27 @@ func main() {
 			users, err := userManager.ListUsers()
 			if err != nil {
 				c.HTML(http.StatusInternalServerError, "users.html", gin.H{
-					"Title": "Users - DevBase User Manager",
-					"Error": fmt.Sprintf("Failed to load users: %v", err),
+					"Title":         "Users - DevBase User Manager",
+					"Error":         fmt.Sprintf("Failed to load users: %v", err),
+					"IsAuthenticated": true,
 				})
 				return
 			}
 
 			c.HTML(http.StatusOK, "users.html", gin.H{
-				"Title":  "Users - DevBase User Manager",
-				"Users":  users,
-				"Success": c.Query("success"),
+				"Title":         "Users - DevBase User Manager",
+				"Users":         users,
+				"Success":       c.Query("success"),
+				"IsAuthenticated": true,
 			})
 		})
 
 		protected.GET("/users/new", func(c *gin.Context) {
 			c.HTML(http.StatusOK, "user_form.html", gin.H{
-				"Title":  "Create User - DevBase User Manager",
-				"Action": "/users",
-				"Method": "POST",
+				"Title":         "Create User - DevBase User Manager",
+				"Action":        "/users",
+				"Method":        "POST",
+				"IsAuthenticated": true,
 			})
 		})
 
@@ -138,20 +142,22 @@ func main() {
 
 			if err := c.ShouldBind(&newUser); err != nil {
 				c.HTML(http.StatusBadRequest, "user_form.html", gin.H{
-					"Title":  "Create User - DevBase User Manager",
-					"Action": "/users",
-					"Method": "POST",
-					"Error":  "Please fill in all required fields",
+					"Title":         "Create User - DevBase User Manager",
+					"Action":        "/users",
+					"Method":        "POST",
+					"Error":         "Please fill in all required fields",
+					"IsAuthenticated": true,
 				})
 				return
 			}
 
 			if err := userManager.CreateUser(newUser.Username, newUser.Password, newUser.Email); err != nil {
 				c.HTML(http.StatusInternalServerError, "user_form.html", gin.H{
-					"Title":  "Create User - DevBase User Manager",
-					"Action": "/users",
-					"Method": "POST",
-					"Error":  fmt.Sprintf("Failed to create user: %v", err),
+					"Title":         "Create User - DevBase User Manager",
+					"Action":        "/users",
+					"Method":        "POST",
+					"Error":         fmt.Sprintf("Failed to create user: %v", err),
+					"IsAuthenticated": true,
 				})
 				return
 			}
@@ -173,14 +179,15 @@ func main() {
 			}
 
 			c.HTML(http.StatusOK, "user_form.html", gin.H{
-				"Title":    fmt.Sprintf("Edit User %s", username),
-				"User":     u,
-				"Keys":     keys,
-				"Action":   fmt.Sprintf("/users/%s", username),
-				"Method":   "POST",
-				"IsEdit":   true,
-				"Success":  c.Query("success"),
-				"Error":    c.Query("error"),
+				"Title":         fmt.Sprintf("Edit User %s", username),
+				"User":          u,
+				"Keys":          keys,
+				"Action":        fmt.Sprintf("/users/%s", username),
+				"Method":        "POST",
+				"IsEdit":        true,
+				"Success":       c.Query("success"),
+				"Error":         c.Query("error"),
+				"IsAuthenticated": true,
 			})
 		})
 
@@ -245,8 +252,9 @@ func main() {
 		// Admin password routes
 		protected.GET("/admin/password", func(c *gin.Context) {
 			c.HTML(http.StatusOK, "password_form.html", gin.H{
-				"Title": "Change Password - DevBase User Manager",
-				"Error": c.Query("error"),
+				"Title":         "Change Password - DevBase User Manager",
+				"Error":         c.Query("error"),
+				"IsAuthenticated": true,
 			})
 		})
 

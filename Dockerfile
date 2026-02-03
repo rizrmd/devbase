@@ -8,7 +8,6 @@ ENV TZ=Asia/Jakarta
 
 # Set environment variables for all users (before RUN commands that use them)
 ENV PATH="/usr/local/go/bin:${PATH}"
-ENV PATH="/root/.bun/bin:${PATH}"
 ENV GOPROXY="https://proxy.golang.org,direct"
 
 # Use Indonesian mirror for faster package downloads
@@ -47,8 +46,12 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y --no-install-recommends nodejs && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Bun (pinned version for cache stability)
-RUN curl -fsSL https://bun.sh/install | bash -s "bun-v1.1.38"
+# Install Bun globally (pinned version for cache stability)
+RUN mkdir -p /usr/local/bun && \
+    curl -fsSL https://github.com/oven-sh/bun/releases/download/v1.1.38/bun-linux-x64.zip -o /tmp/bun.zip && \
+    unzip /tmp/bun.zip -d /tmp && \
+    mv /tmp/bun-linux-x64/bun /usr/local/bin/ && \
+    rm -rf /tmp/bun.zip /tmp/bun-linux-x64
 
 # Install GitHub CLI (separate layer - changes independently)
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
@@ -72,7 +75,6 @@ RUN useradd -m -s /bin/bash dev && \
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
     sed -i 's/#Port 22/Port 2222/' /etc/ssh/sshd_config && \
     echo 'export PATH=/usr/local/go/bin:$PATH' >> /home/dev/.bashrc && \
-    echo 'export PATH=$HOME/.bun/bin:$PATH' >> /home/dev/.bashrc && \
     echo 'export GOPATH=$HOME/go' >> /home/dev/.bashrc && \
     echo 'export PATH=$GOPATH/bin:$PATH' >> /home/dev/.bashrc
 
@@ -85,6 +87,11 @@ RUN mkdir -p /home/dev/.claude && \
 
 # Ensure home directory ownership is correct
 RUN chown -R dev:dev /home/dev
+
+# Set PATH globally for all users (including SSH sessions)
+RUN echo 'export PATH=/usr/local/go/bin:$GOPATH/bin:$PATH' > /etc/profile.d/dev-tools.sh && \
+    echo 'export GOPATH=$HOME/go' >> /etc/profile.d/dev-tools.sh && \
+    chmod +x /etc/profile.d/dev-tools.sh
 
 # Expose SSH port (container port, mapped to different host port by Coolify)
 EXPOSE 2222

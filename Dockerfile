@@ -3,6 +3,7 @@ FROM ubuntu:24.04
 
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
+ENV APT_CLI_OPTIONS=suppress-warning
 
 # Use Indonesian mirror for faster package downloads
 RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|http://kartolo.sby.datautama.net.id/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources && \

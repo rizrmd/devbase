@@ -1,0 +1,60 @@
+{{ define "layout" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    {{ if .IsAuthenticated }}
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/users" class="text-xl font-bold">DevBase</a>
+                    <span class="ml-4 text-blue-200">User Manager</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/users" class="hover:text-blue-200">Users</a>
+                    <a href="/admin/password" class="hover:text-blue-200">Change Password</a>
+                    <a href="/logout" class="bg-blue-700 px-3 py-1 rounded hover:bg-blue-800">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {{ end }}
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {{ if .Success }}
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {{ .Success }}
+        </div>
+        {{ end }}
+
+        {{ if .Error }}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ .Error }}
+        </div>
+        {{ end }}
+
+        {{ template "content" . }}
+    </main>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('Copied to clipboard!');
+            }, function(err) {
+                alert('Failed to copy: ' + err);
+            });
+        }
+
+        function confirmDelete(username) {
+            return confirm('Are you sure you want to delete user "' + username + '"? This action cannot be undone.');
+        }
+    </script>
+</body>
+</html>
+{{ end }}

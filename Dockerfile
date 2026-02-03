@@ -29,6 +29,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     git \
     tzdata \
+    sqlite3 \
+    gcc \
     && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
@@ -61,6 +63,13 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
 # Install Claude CLI
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
+# Install Cloudflare Warp
+RUN curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ jammy main" | tee /etc/apt/sources.list.d/cloudflare-client.list && \
+    apt-get update && \
+    apt-get install -y cloudflare-warp && \
+    rm -rf /var/lib/apt/lists/*
+
 # Create 'dev' user, configure SSH, and set up environment in one layer
 RUN useradd -m -s /bin/bash dev && \
     usermod -aG sudo dev && \
@@ -91,8 +100,33 @@ RUN echo 'export PATH=/usr/local/go/bin:$GOPATH/bin:$PATH' > /etc/profile.d/dev-
     echo 'export GOPATH=$HOME/go' >> /etc/profile.d/dev-tools.sh && \
     chmod +x /etc/profile.d/dev-tools.sh
 
-# Expose SSH port (container port, mapped to different host port by Coolify)
-EXPOSE 2222
+# Create /devbase base directory for user home directories
+RUN mkdir -p /devbase && \
+    chmod 755 /devbase
 
-# Start SSH server in background and keep container alive
-CMD /bin/bash -c "/usr/sbin/sshd -D -e & sleep infinity"
+# Create data directory for user manager database
+RUN mkdir -p /var/lib/devbase && \
+    chmod 755 /var/lib/devbase
+
+# Set working directory for build
+WORKDIR /build
+
+# Copy Go application source
+COPY go.mod go.sum ./
+COPY cmd/ ./cmd/
+COPY internal/ ./internal/
+COPY data/ ./data/
+
+# Download dependencies and build user manager
+RUN go mod download && \
+    go build -o /usr/local/bin/usermgr ./cmd/usermgr && \
+    chmod +x /usr/local/bin/usermgr
+
+# Clean up build directory
+WORKDIR /
+
+# Expose ports (SSH and web UI)
+EXPOSE 2222 8080
+
+# Start SSH server, user manager, and Cloudflare Warp in background
+CMD /bin/bash -c "/usr/sbin/sshd -D -e & /usr/local/bin/usermgr & warp-svc & sleep 5 && warp-cli --accept-tos register && warp-cli --accept-tos set-license sUS39N41-6heYD031-qo31g96P && warp-cli --accept-tos connect && sleep infinity"

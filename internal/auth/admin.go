@@ -14,6 +14,7 @@ import (
 
 const (
 	adminSessionKey = "admin_session"
+	usernameKey     = "admin_username"
 	sessionDuration = 1 * time.Hour
 )
 
@@ -28,6 +29,7 @@ func New() *AdminAuth {
 // Session represents an admin session
 type Session struct {
 	Token     string
+	Username  string
 	CreatedAt time.Time
 	ExpiresAt time.Time
 }
@@ -70,6 +72,7 @@ func (a *AdminAuth) Login(username, password string) (*Session, error) {
 
 	session := &Session{
 		Token:     token,
+		Username:  username,
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(sessionDuration),
 	}
@@ -124,6 +127,15 @@ func SetSessionCookie(c *gin.Context, session *Session) {
 		false,
 		true,
 	)
+	c.SetCookie(
+		usernameKey,
+		session.Username,
+		int(sessionDuration.Seconds()),
+		"/",
+		"",
+		false,
+		false,
+	)
 }
 
 // ClearSessionCookie clears the session cookie
@@ -138,6 +150,21 @@ func ClearSessionCookie(c *gin.Context) {
 		false,
 		true,
 	)
+	c.SetCookie(
+		usernameKey,
+		"",
+		-1,
+		"/",
+		"",
+		false,
+		false,
+	)
+}
+
+// GetUsername returns the username of the currently authenticated user
+func GetUsername(c *gin.Context) string {
+	username, _ := c.Cookie(usernameKey)
+	return username
 }
 
 // generateToken generates a random session token

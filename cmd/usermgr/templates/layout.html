@@ -11,17 +11,15 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
     {{ if .IsAuthenticated }}
-    <nav class="nav bg-blue-600 text-white">
-        <div class="nav__start">
-            <a href="/users" class="text-xl font-bold">DevBase</a>
-            <span class="badge ml-4">User Manager</span>
+    <header class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+            <a href="/users" class="text-xl font-bold text-gray-900">DevBase</a>
+            <div class="flex items-center gap-4">
+                <span class="text-gray-700">{{ .Username }}</span>
+                <a href="/logout" class="text-sm text-gray-600 hover:text-gray-900">Logout</a>
+            </div>
         </div>
-        <div class="nav__end">
-            <a href="/users" class="nav__link">Users</a>
-            <a href="/admin/password" class="nav__link">Change Password</a>
-            <a href="/logout" class="btn btn-ghost">Logout</a>
-        </div>
-    </nav>
+    </header>
     {{ end }}
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

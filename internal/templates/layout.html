@@ -9,21 +9,15 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
     {{ if .IsAuthenticated }}
-    <nav class="bg-blue-600 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center">
-                    <a href="/users" class="text-xl font-bold">DevBase</a>
-                    <span class="ml-4 text-blue-200">User Manager</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="/users" class="hover:text-blue-200">Users</a>
-                    <a href="/admin/password" class="hover:text-blue-200">Change Password</a>
-                    <a href="/logout" class="bg-blue-700 px-3 py-1 rounded hover:bg-blue-800">Logout</a>
-                </div>
+    <header class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+            <a href="/users" class="text-xl font-bold text-gray-900">DevBase</a>
+            <div class="flex items-center gap-4">
+                <span class="text-gray-700">{{ .Username }}</span>
+                <a href="/logout" class="text-sm text-gray-600 hover:text-gray-900">Logout</a>
             </div>
         </div>
-    </nav>
+    </header>
     {{ end }}
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

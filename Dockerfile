@@ -108,10 +108,11 @@ COPY cmd/ ./cmd/
 COPY internal/ ./internal/
 COPY data/ ./data/
 
-# Download dependencies and build user manager (using pure Go SQLite, no CGO needed)
+# Download dependencies and build user manager and rebuild tool (using pure Go SQLite, no CGO needed)
 RUN go mod download && \
     CGO_ENABLED=0 go build -o /usr/local/bin/usermgr ./cmd/usermgr && \
-    chmod +x /usr/local/bin/usermgr
+    CGO_ENABLED=0 go build -o /usr/local/bin/user-rebuild ./cmd/user-rebuild && \
+    chmod +x /usr/local/bin/usermgr /usr/local/bin/user-rebuild
 
 # Clean up build directory
 WORKDIR /
@@ -120,4 +121,4 @@ WORKDIR /
 EXPOSE 2222 8080
 
 # Start SSH server and user manager in background
-CMD /bin/bash -c "/usr/sbin/sshd -D -e & /usr/local/bin/usermgr & sleep infinity"
+CMD /bin/bash -c "/usr/local/bin/user-rebuild /devbase && /usr/sbin/sshd -D -e & /usr/local/bin/usermgr & sleep infinity"

@@ -99,6 +99,24 @@
                     </div>
                 </div>
 
+                <div class="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <h3 class="font-medium mb-4">SSH Connection</h3>
+                    <div class="grid grid-cols-1 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-500">SSH Command:</span>
+                            <div class="mt-1 p-2 bg-gray-800 rounded font-mono text-xs text-green-400 overflow-x-auto">
+                                ssh -p {{ .SSHPort }} {{ .User.Username }}@{{ .SSHHost }}
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Copy SSH Key:</span>
+                            <div class="mt-1 p-2 bg-gray-800 rounded font-mono text-xs text-green-400 overflow-x-auto">
+                                ssh-copy-id -p {{ .SSHPort }} {{ .User.Username }}@{{ .SSHHost }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <h3 class="font-medium mb-4">Change Password</h3>
                     <form action="/users/{{ .User.Username }}/password" method="POST" class="form grid gap-4">

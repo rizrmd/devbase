@@ -1,18 +1,20 @@
 # DevBase Docker Container
 
-Ubuntu-based development container with SSH access and modern development tools.
+Ubuntu-based development container with SSH access, user management, and modern development tools.
 
 ## Features
 
-- **Base**: Latest Ubuntu
+- **Base**: Ubuntu 24.04
 - **User**: `dev` (with sudo privileges, no password required)
 - **SSH**: Port 2222 on host → 22 in container
+- **Web UI**: Port 8080 - User management interface
 - **Tools Installed**:
   - Bun (JavaScript runtime)
   - Node.js (LTS)
   - Go 1.23.5
   - Git
   - GitHub CLI (gh)
+- **User Persistence**: All created users persist across container restarts
 
 ## Quick Start
 
@@ -22,16 +24,18 @@ Ubuntu-based development container with SSH access and modern development tools.
 # Build the image
 docker build -t devbase .
 
-# Run the container
+# Run the container with user data persistence
 docker run -d \
   --name devbase \
   --hostname devbase \
   -p 2222:22 \
-  -v ./home-data:/home/dev \
-  -v ~/.ssh:/home/dev/.ssh-host:ro \
+  -p 8080:8080 \
+  -v ./devbase-data:/devbase \
   --restart unless-stopped \
   devbase
 ```
+
+**Important**: Mount `/devbase` as a volume to persist user data across container restarts. Without this, all users will be lost on restart.
 
 ### 2. Set Up SSH Access
 
@@ -74,12 +78,61 @@ docker restart devbase
 ssh -p 2222 dev@localhost
 ```
 
+## Web User Management Interface
+
+The container includes a web-based user management interface accessible at `http://localhost:8080`.
+
+### Features
+- Create, delete, and manage users via web UI
+- Change user passwords
+- All user data persists in `/devbase/.internal/users.json`
+- Users are automatically recreated on container startup
+
+### Accessing the Web UI
+1. Navigate to `http://localhost:8080` in your browser
+2. Login with admin credentials (default: admin/admin123)
+3. Set the admin password first time you login
+
+### Managing Users via Web UI
+- **Create User**: Enter username and password (min 3 chars, alphanumeric + underscore/hyphen)
+- **Delete User**: Remove user and their home directory
+- **Change Password**: Update password for any user
+
+### How Persistence Works
+1. User data is stored in `/devbase/.internal/users.json` (in your mounted volume)
+2. On container startup, the `user-rebuild` tool reads this file
+3. All users are recreated with their saved passwords
+4. This happens automatically before SSH and web UI start
+
+### Handling Existing User Directories
+
+If you have existing user directories in `/devbase` that were created before the persistence feature, they won't be automatically restored because we don't have their passwords.
+
+When you restart the container, the startup process will detect these orphaned directories and display a warning:
+
+```
+WARNING: Found orphaned home directories:
+  - /devbase/username1
+  - /devbase/username2
+```
+
+To restore these users:
+1. Use the web UI at `http://localhost:8080`
+2. Create each user with the same username
+3. The existing home directory will be preserved and reused
+4. Set a new password for the user
+
+**Note**: You need to know the old password to set the same one, or set a new password and inform the user.
+
 ## Directory Structure
 
 ```
 .
-├── home-data/       # Persists dev user's home directory
-└── Dockerfile       # Container definition
+├── devbase-data/              # Persisted user data (mount this to /devbase)
+│   ├── .internal/
+│   │   └── users.json        # User database (auto-generated)
+│   └── {username}/           # User home directories
+└── Dockerfile                 # Container definition
 ```
 
 ## Using GitHub CLI (gh)

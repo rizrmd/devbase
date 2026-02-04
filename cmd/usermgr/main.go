@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -93,27 +94,30 @@ func main() {
 			users, err := userManager.ListUsers()
 			if err != nil {
 				c.HTML(http.StatusInternalServerError, "users.html", gin.H{
-					"Title":            "Users - DevBase User Manager",
-					"Error":            fmt.Sprintf("Failed to load users: %v", err),
-					"IsAuthenticated":  true,
+					"Title":           "Users - DevBase User Manager",
+					"Error":           fmt.Sprintf("Failed to load users: %v", err),
+					"IsAuthenticated": true,
+					"Username":        auth.GetUsername(c),
 				})
 				return
 			}
 
 			c.HTML(http.StatusOK, "users.html", gin.H{
-				"Title":            "Users - DevBase User Manager",
-				"Users":            users,
-				"Success":          c.Query("success"),
-				"IsAuthenticated":  true,
+				"Title":           "Users - DevBase User Manager",
+				"Users":           users,
+				"Success":         c.Query("success"),
+				"IsAuthenticated": true,
+				"Username":        auth.GetUsername(c),
 			})
 		})
 
 		protected.GET("/users/new", func(c *gin.Context) {
 			c.HTML(http.StatusOK, "user_form.html", gin.H{
-				"Title":            "Create User - DevBase User Manager",
-				"Action":           "/users",
-				"Method":           "POST",
-				"IsAuthenticated":  true,
+				"Title":           "Create User - DevBase User Manager",
+				"Action":          "/users",
+				"Method":          "POST",
+				"IsAuthenticated": true,
+				"Username":        auth.GetUsername(c),
 			})
 		})
 
@@ -125,22 +129,24 @@ func main() {
 
 			if err := c.ShouldBind(&newUser); err != nil {
 				c.HTML(http.StatusBadRequest, "user_form.html", gin.H{
-					"Title":            "Create User - DevBase User Manager",
-					"Action":           "/users",
-					"Method":           "POST",
-					"Error":            "Please fill in all required fields",
-					"IsAuthenticated":  true,
+					"Title":           "Create User - DevBase User Manager",
+					"Action":          "/users",
+					"Method":          "POST",
+					"Error":           "Please fill in all required fields",
+					"IsAuthenticated": true,
+					"Username":        auth.GetUsername(c),
 				})
 				return
 			}
 
 			if err := userManager.CreateUser(newUser.Username, newUser.Password); err != nil {
 				c.HTML(http.StatusInternalServerError, "user_form.html", gin.H{
-					"Title":            "Create User - DevBase User Manager",
-					"Action":           "/users",
-					"Method":           "POST",
-					"Error":            fmt.Sprintf("Failed to create user: %v", err),
-					"IsAuthenticated":  true,
+					"Title":           "Create User - DevBase User Manager",
+					"Action":          "/users",
+					"Method":          "POST",
+					"Error":           fmt.Sprintf("Failed to create user: %v", err),
+					"IsAuthenticated": true,
+					"Username":        auth.GetUsername(c),
 				})
 				return
 			}
@@ -156,15 +162,28 @@ func main() {
 				return
 			}
 
+			// Get the external host from the request (remove port if present)
+			host := c.GetHeader("X-Forwarded-Host")
+			if host == "" {
+				host = c.Request.Host
+			}
+			// Remove port from host if present
+			if idx := strings.Index(host, ":"); idx != -1 {
+				host = host[:idx]
+			}
+
 			c.HTML(http.StatusOK, "user_form.html", gin.H{
-				"Title":            fmt.Sprintf("Edit User %s", username),
-				"User":             u,
-				"Action":           fmt.Sprintf("/users/%s", username),
-				"Method":           "POST",
-				"IsEdit":           true,
-				"Success":          c.Query("success"),
-				"Error":            c.Query("error"),
-				"IsAuthenticated":  true,
+				"Title":           fmt.Sprintf("Edit User %s", username),
+				"User":            u,
+				"Action":          fmt.Sprintf("/users/%s", username),
+				"Method":          "POST",
+				"IsEdit":          true,
+				"Success":         c.Query("success"),
+				"Error":           c.Query("error"),
+				"IsAuthenticated": true,
+				"Username":        auth.GetUsername(c),
+				"SSHPort":         cfg.ExternalSSHPort,
+				"SSHHost":         host,
 			})
 		})
 

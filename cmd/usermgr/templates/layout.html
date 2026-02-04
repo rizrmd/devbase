@@ -10,18 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.6/dist/js/all.min.js" defer></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    {{ if .IsAuthenticated }}
-    <header class="bg-white border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-            <a href="/users" class="text-xl font-bold text-gray-900">DevBase</a>
-            <div class="flex items-center gap-4">
-                <span class="text-gray-700">{{ .Username }}</span>
-                <a href="/logout" class="text-sm text-gray-600 hover:text-gray-900">Logout</a>
-            </div>
-        </div>
-    </header>
-    {{ end }}
-
+    
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {{ if .Success }}
         <div class="alert mb-4">

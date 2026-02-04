@@ -13,6 +13,7 @@ type Config struct {
 	BaseHomeDir     string
 	SSHPort         int
 	ExternalSSHPort int // External SSH port (e.g., mapped in Coolify)
+	ExternalSSHHost string // External SSH host (e.g., 103.30.247.46)
 	SessionSecret   string
 	SessionDuration int // hours
 }
@@ -26,6 +27,7 @@ func Load() *Config {
 		BaseHomeDir:     getEnv("BASE_HOME_DIR", "/devbase"),
 		SSHPort:         getEnvInt("SSH_PORT", 2222),
 		ExternalSSHPort: getEnvInt("EXTERNAL_SSH_PORT", 2222), // External mapped port (e.g., 9311 in Coolify)
+		ExternalSSHHost: getEnv("EXTERNAL_SSH_HOST", "localhost"), // External host (e.g., 103.30.247.46)
 		SessionSecret:   getEnv("SESSION_SECRET", "devbase-session-secret-change-me"),
 		SessionDuration: getEnvInt("SESSION_DURATION", 1), // 1 hour
 	}

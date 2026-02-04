@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -162,16 +161,6 @@ func main() {
 				return
 			}
 
-			// Get the external host from the request (remove port if present)
-			host := c.GetHeader("X-Forwarded-Host")
-			if host == "" {
-				host = c.Request.Host
-			}
-			// Remove port from host if present
-			if idx := strings.Index(host, ":"); idx != -1 {
-				host = host[:idx]
-			}
-
 			c.HTML(http.StatusOK, "user_form.html", gin.H{
 				"Title":           fmt.Sprintf("Edit User %s", username),
 				"User":            u,
@@ -183,7 +172,7 @@ func main() {
 				"IsAuthenticated": true,
 				"Username":        auth.GetUsername(c),
 				"SSHPort":         cfg.ExternalSSHPort,
-				"SSHHost":         host,
+				"SSHHost":         cfg.ExternalSSHHost,
 			})
 		})
 

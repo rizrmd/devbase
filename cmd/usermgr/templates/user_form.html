@@ -10,17 +10,6 @@
     <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.6/dist/js/all.min.js" defer></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <nav class="nav bg-blue-600 text-white">
-        <div class="nav__start">
-            <a href="/users" class="text-xl font-bold">DevBase</a>
-            <span class="badge ml-4">User Manager</span>
-        </div>
-        <div class="nav__end">
-            <a href="/users" class="nav__link">Users</a>
-            <a href="/logout" class="btn btn-ghost">Logout</a>
-        </div>
-    </nav>
-
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {{ if .Success }}
         <div class="alert mb-4 border-l-4 border-green-500 bg-green-50">

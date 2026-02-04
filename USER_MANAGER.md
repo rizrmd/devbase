@@ -42,6 +42,7 @@ Once running:
 | `BASE_HOME_DIR` | `/devbase` | User home directory base |
 | `SSH_PORT` | `2222` | SSH port (for reference) |
 | `EXTERNAL_SSH_PORT` | `2222` | External SSH port mapped in Docker/Coolify (e.g., 9311) |
+| `EXTERNAL_SSH_HOST` | `localhost` | External SSH host/IP (e.g., 103.30.247.46) |
 
 ## Testing
 

@@ -15,6 +15,8 @@ Ubuntu-based development container with SSH access, user management, and modern 
   - Git
   - GitHub CLI (gh)
 - **User Persistence**: All created users persist across container restarts
+- **SSH Host Key Persistence**: SSH host keys persist across container restarts, preventing "REMOTE HOST IDENTIFICATION HAS CHANGED" warnings
+- **Health Checks**: Built-in health checks monitor SSH and web UI services for Coolify deployment
 
 ## Quick Start
 
@@ -100,9 +102,39 @@ The container includes a web-based user management interface accessible at `http
 
 ### How Persistence Works
 1. User data is stored in `/devbase/.internal/users.json` (in your mounted volume)
-2. On container startup, the `user-rebuild` tool reads this file
-3. All users are recreated with their saved passwords
-4. This happens automatically before SSH and web UI start
+2. SSH host keys are stored in `/devbase/.internal/ssh-host-keys/` (in your mounted volume)
+3. On container startup, the `user-rebuild` tool reads the users file
+4. SSH host keys are restored from persistent storage (or generated if first run)
+5. All users are recreated with their saved passwords
+6. This happens automatically before SSH and web UI start
+
+### SSH Host Key Persistence
+
+The container automatically persists SSH host keys in `/devbase/.internal/ssh-host-keys/`. This prevents the "REMOTE HOST IDENTIFICATION HAS CHANGED" warning when you reconnect after restarting the container.
+
+- **First run**: SSH host keys are generated and saved to the persistent volume
+- **Subsequent runs**: Existing SSH host keys are restored from the persistent volume
+- **Result**: Your SSH client will recognize the container as the same host across restarts
+
+### Health Checks
+
+The container includes built-in health checks for deployment in platforms like Coolify:
+
+- **What it checks**: SSH daemon is running AND web UI responds on port 8080
+- **Interval**: Every 30 seconds
+- **Timeout**: 5 seconds
+- **Start period**: 10 seconds (gives services time to start)
+- **Retries**: 3 consecutive failures before marking as unhealthy
+
+This ensures that:
+- Traffic is only routed to healthy instances (when using Traefik/Coolify)
+- Rolling updates work correctly
+- Failed services are detected automatically
+
+**Health check command** (defined in Dockerfile):
+```bash
+pgrep sshd && curl -f http://localhost:8080/ || exit 1
+```
 
 ### Handling Existing User Directories
 
@@ -170,6 +202,26 @@ docker rm devbase
 ### Restart the container
 ```bash
 docker restart devbase
+```
+
+### Rebuild the container after Dockerfile changes
+```bash
+# Stop and remove the old container
+docker stop devbase
+docker rm devbase
+
+# Rebuild the image
+docker build -t devbase .
+
+# Run with the same volume mounts (data will be preserved)
+docker run -d \
+  --name devbase \
+  --hostname devbase \
+  -p 2222:22 \
+  -p 8080:8080 \
+  -v ./devbase-data:/devbase \
+  --restart unless-stopped \
+  devbase
 ```
 
 ### Execute commands without SSH

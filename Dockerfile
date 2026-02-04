@@ -99,6 +99,10 @@ RUN mkdir -p /devbase && \
 RUN mkdir -p /devbase/.internal && \
     chmod 700 /devbase/.internal
 
+# Create directory for persistent SSH host keys
+RUN mkdir -p /devbase/.internal/ssh-host-keys && \
+    chmod 700 /devbase/.internal/ssh-host-keys
+
 # Set working directory for build
 WORKDIR /build
 
@@ -117,8 +121,30 @@ RUN go mod download && \
 # Clean up build directory
 WORKDIR /
 
+# Create startup script that generates or restores SSH host keys
+RUN echo '#!/bin/bash\n\
+# Check if SSH host keys exist in persistent storage\n\
+if [ ! -f /devbase/.internal/ssh-host-keys/ssh_host_rsa_key ]; then\n\
+    echo "Generating new SSH host keys..."\n\
+    ssh-keygen -A\n\
+    # Copy generated keys to persistent storage\n\
+    cp /etc/ssh/ssh_host_* /devbase/.internal/ssh-host-keys/\n\
+else\n\
+    echo "Restoring SSH host keys from persistent storage..."\n\
+    cp /devbase/.internal/ssh-host-keys/ssh_host_* /etc/ssh/\n\
+fi\n\
+/usr/local/bin/user-rebuild /devbase\n\
+/usr/sbin/sshd -D -e &\n\
+/usr/local/bin/usermgr &\n\
+sleep infinity' > /usr/local/bin/start-devbase.sh && \
+    chmod +x /usr/local/bin/start-devbase.sh
+
 # Expose ports (SSH and web UI)
 EXPOSE 2222 8080
 
-# Start SSH server and user manager in background
-CMD /bin/bash -c "/usr/local/bin/user-rebuild /devbase && /usr/sbin/sshd -D -e & /usr/local/bin/usermgr & sleep infinity"
+# Health check to monitor SSH and web UI
+# Checks: SSH daemon is running AND web UI responds on port 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD pgrep sshd && curl -f http://localhost:8080/ || exit 1
+
+CMD ["/usr/local/bin/start-devbase.sh"]
